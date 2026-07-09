@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>signArt - Sanatçı Sertifika Sistemi</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#b78a38',
+              goldLight: '#d4af37',
+              dark: '#030712',
+              purple: '#8b5cf6',
+              pink: '#ec4899',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen relative flex flex-col selection:bg-brand-purple selection:text-white">
+
+  <!-- Glowing Background Blobs -->
+  <div class="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-purple/10 blur-[120px] pointer-events-none z-0"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand-pink/10 blur-[120px] pointer-events-none z-0"></div>
+
+  <!-- Header Navigation -->
+  <header class="glass-panel sticky top-0 z-50 border-b border-white/5 backdrop-blur-md px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3 cursor-pointer" onclick="app.navigateTo('gallery')">
+      <div class="bg-gradient-to-tr from-brand-purple to-brand-pink p-2 rounded-xl shadow-lg shadow-brand-purple/20">
+        <i data-lucide="pen-tool" class="w-6 h-6 text-white"></i>
+      </div>
+      <span class="text-2xl font-bold tracking-wider bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+        sign<span class="text-brand-gold">Art</span>
+      </span>
+    </div>
+
+    <nav class="flex items-center space-x-4">
+      <button onclick="app.navigateTo('qr')" class="flex items-center space-x-2 bg-slate-900/60 hover:bg-slate-800 border border-white/10 hover:border-brand-gold/40 px-4 py-2 rounded-full transition duration-300 text-sm font-medium">
+        <i data-lucide="qr-code" class="w-4 h-4 text-brand-gold"></i>
+        <span>QR Kod Oku</span>
+      </button>
+
+      <button id="nav-profile-btn" onclick="app.handleProfileNav()" class="flex items-center space-x-2 bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-90 text-white px-5 py-2 rounded-full transition duration-300 text-sm font-semibold shadow-lg shadow-brand-purple/20">
+        <i data-lucide="user" class="w-4 h-4"></i>
+        <span id="nav-profile-text">Giriş Yap</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="flex-grow z-10 px-4 py-8 max-w-7xl mx-auto w-full flex flex-col justify-center">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 0: SANAL SANAT GALERİSİ (GALLERY PAGE) -->
+    <!-- ======================================================= -->
+    <section id="page-gallery" class="page-fade-in space-y-12">
+      <div class="text-center space-y-4 max-w-2xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-300 to-slate-500 bg-clip-text text-transparent">
+          Sanal Sergi Salonu
+        </h1>
+        <p class="text-slate-400 text-lg">
+          Sanatçıların tescilli eserlerini inceleyin. Her bir çalışma, benzersiz dijital özgünlük sertifikasına sahiptir.
+        </p>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 pt-4">
+        <!-- Artwork 1 -->
+        <div class="flex flex-col items-center group">
+          <div class="gallery-frame-wood p-1 transition-transform duration-500 hover:scale-[1.02] cursor-pointer">
+            <div class="passe-partout">
+              <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600&auto=format&fit=crop" 
+                   alt="Gece Mavisi" class="w-72 h-96 object-cover shadow-md">
+            </div>
+          </div>
+          <!-- Label -->
+          <div class="mt-6 text-center space-y-1 w-full max-w-[340px] bg-slate-900/40 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
+            <h3 class="text-lg font-bold text-white italic">Gece Mavisi</h3>
+            <p class="text-slate-400 text-sm font-medium">Ayla Yılmaz</p>
+            <div class="flex justify-center space-x-2 text-xs text-slate-500 pt-1 border-t border-white/5 mt-2">
+              <span>Tuval Üzerine Akrilik</span>
+              <span>•</span>
+              <span>50 x 70 cm</span>
+              <span>•</span>
+              <span>2025</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Artwork 2 -->
+        <div class="flex flex-col items-center group">
+          <div class="gallery-frame-gold p-1 transition-transform duration-500 hover:scale-[1.02] cursor-pointer">
+            <div class="passe-partout">
+              <img src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop" 
+                   alt="Kozmik Akış" class="w-72 h-96 object-cover shadow-md">
+            </div>
+          </div>
+          <!-- Label -->
+          <div class="mt-6 text-center space-y-1 w-full max-w-[340px] bg-slate-900/40 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
+            <h3 class="text-lg font-bold text-white italic">Kozmik Akış</h3>
+            <p class="text-slate-400 text-sm font-medium">Demir Karahan</p>
+            <div class="flex justify-center space-x-2 text-xs text-slate-500 pt-1 border-t border-white/5 mt-2">
+              <span>Dijital Sanat</span>
+              <span>•</span>
+              <span>80 x 80 cm</span>
+              <span>•</span>
+              <span>2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Artwork 3 -->
+        <div class="flex flex-col items-center group">
+          <div class="gallery-frame-wood p-1 transition-transform duration-500 hover:scale-[1.02] cursor-pointer">
+            <div class="passe-partout">
+              <img src="https://images.unsplash.com/photo-1579783928621-7a13d66a62d1?q=80&w=600&auto=format&fit=crop" 
+                   alt="Sessiz Çığlık" class="w-72 h-96 object-cover shadow-md">
+            </div>
+          </div>
+          <!-- Label -->
+          <div class="mt-6 text-center space-y-1 w-full max-w-[340px] bg-slate-900/40 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
+            <h3 class="text-lg font-bold text-white italic">Sessiz Çığlık</h3>
+            <p class="text-slate-400 text-sm font-medium">Selin Kaya</p>
+            <div class="flex justify-center space-x-2 text-xs text-slate-500 pt-1 border-t border-white/5 mt-2">
+              <span>Tuval Üzerine Yağlı Boya</span>
+              <span>•</span>
+              <span>60 x 90 cm</span>
+              <span>•</span>
+              <span>2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 1: QR TARAYICI (QR PAGE - PLACEHOLDER) -->
+    <!-- ======================================================= -->
+    <section id="page-qr" class="page-fade-in hidden max-w-md mx-auto w-full space-y-6">
+      <button onclick="app.handleQRBack()" class="flex items-center space-x-2 text-slate-400 hover:text-white transition duration-200 text-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Geri Dön</span>
+      </button>
+
+      <div class="glass-panel p-8 rounded-3xl border border-white/10 space-y-6 text-center">
+        <div class="mx-auto w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/30">
+          <i data-lucide="qr-code" class="w-8 h-8 text-brand-gold"></i>
+        </div>
+        
+        <div class="space-y-2">
+          <h2 class="text-2xl font-bold text-white">Sertifika QR Doğrulama</h2>
+          <p class="text-slate-400 text-sm">
+            Fiziksel sertifika üzerindeki QR kodu kameranıza doğrultarak orijinalliğini anında sorgulayın.
+          </p>
+        </div>
+
+        <!-- Simulated Camera Viewport -->
+        <div class="relative w-full aspect-square bg-slate-950 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center justify-center p-4">
+          <!-- Neon Corners -->
+          <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-brand-gold"></div>
+          <div class="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-brand-gold"></div>
+          <div class="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-brand-gold"></div>
+          <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-brand-gold"></div>
+
+          <!-- Laser Scan Line -->
+          <div class="scanner-laser absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-gold to-transparent shadow-[0_0_10px_#b78a38] pointer-events-none"></div>
+
+          <div class="z-10 text-center space-y-3 px-6">
+            <i data-lucide="aperture" class="w-12 h-12 text-slate-600 mx-auto animate-spin" style="animation-duration: 8s;"></i>
+            <p class="text-xs text-slate-500 font-mono tracking-wider">KAMERA ARANIYOR VEYA CİHAZ DOĞRULANIYOR...</p>
+            <p class="text-xs text-slate-400 max-w-[240px] mx-auto">
+              (Tarayıcı modülü geliştirme aşamasındadır. Test etmek için aşağıdaki simülatörü kullanabilirsiniz.)
+            </p>
+          </div>
+        </div>
+
+        <!-- Quick simulator button -->
+        <button onclick="app.simulateQRScan()" class="w-full bg-slate-900 border border-white/10 hover:border-brand-gold/40 text-slate-200 py-3 rounded-xl transition duration-300 font-semibold flex items-center justify-center space-x-2 text-sm">
+          <i data-lucide="play" class="w-4 h-4 text-brand-gold"></i>
+          <span>Örnek Sertifika Kodunu Oku (Simülatör)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 2: GİRİŞ VE KAYIT SAYFASI (AUTH PAGE) -->
+    <!-- ======================================================= -->
+    <section id="page-auth" class="page-fade-in hidden max-w-md mx-auto w-full space-y-6">
+      <button onclick="app.navigateTo('gallery')" class="flex items-center space-x-2 text-slate-400 hover:text-white transition duration-200 text-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Geri Dön</span>
+      </button>
+
+      <div class="glass-panel rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+        <!-- Auth Tabs -->
+        <div class="flex border-b border-white/5 bg-slate-950/40">
+          <button id="tab-login" onclick="app.switchAuthTab('login')" class="flex-1 py-4 text-center font-semibold text-sm border-b-2 border-brand-purple text-white transition duration-200">
+            Giriş Yap
+          </button>
+          <button id="tab-register" onclick="app.switchAuthTab('register')" class="flex-1 py-4 text-center font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition duration-200">
+            Kayıt Ol
+          </button>
+        </div>
+
+        <div class="p-8 space-y-6">
+          <!-- LOGIN FORM -->
+          <form id="form-login" onsubmit="app.handleLogin(event)" class="space-y-4">
+            <div class="space-y-2">
+              <label for="login-email" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">E-Posta Adresi</label>
+              <div class="relative">
+                <input type="email" id="login-email" placeholder="sanatci@signart.com" 
+                       class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+              </div>
+              <p id="error-login-email" class="text-xs text-red-400 hidden"></p>
+            </div>
+
+            <div class="space-y-2">
+              <label for="login-password" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Şifre</label>
+              <div class="relative">
+                <input type="password" id="login-password" placeholder="••••••••" 
+                       class="w-full bg-slate-900 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+                <button type="button" onclick="app.togglePasswordVisibility('login-password')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                  <i data-lucide="eye" id="eye-login-password" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p id="error-login-password" class="text-xs text-red-400 hidden"></p>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-95 text-white py-3 rounded-xl transition duration-300 font-semibold shadow-lg shadow-brand-purple/20 text-sm flex items-center justify-center space-x-2">
+              <span>Giriş Yap</span>
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+            </button>
+          </form>
+
+          <!-- REGISTER FORM -->
+          <form id="form-register" onsubmit="app.handleRegister(event)" class="space-y-4 hidden">
+            <div class="space-y-2">
+              <label for="reg-name" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sanatçı Adı Soyadı</label>
+              <input type="text" id="reg-name" placeholder="Örn: Ayla Yılmaz" 
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+              <p id="error-reg-name" class="text-xs text-red-400 hidden"></p>
+            </div>
+
+            <div class="space-y-2">
+              <label for="reg-email" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">E-Posta Adresi</label>
+              <input type="email" id="reg-email" placeholder="sanatci@signart.com" 
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+              <p id="error-reg-email" class="text-xs text-red-400 hidden"></p>
+            </div>
+
+            <div class="space-y-2">
+              <label for="reg-password" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Şifre</label>
+              <div class="relative">
+                <input type="password" id="reg-password" placeholder="En az 6 karakter" 
+                       class="w-full bg-slate-900 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+                <button type="button" onclick="app.togglePasswordVisibility('reg-password')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                  <i data-lucide="eye" id="eye-reg-password" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p id="error-reg-password" class="text-xs text-red-400 hidden"></p>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-95 text-white py-3 rounded-xl transition duration-300 font-semibold shadow-lg shadow-brand-purple/20 text-sm flex items-center justify-center space-x-2">
+              <span>Kayıt Ol</span>
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+            </button>
+          </form>
+
+          <!-- Mock account alert -->
+          <div class="border border-brand-purple/20 bg-brand-purple/5 p-4 rounded-2xl flex items-start space-x-3">
+            <i data-lucide="info" class="w-5 h-5 text-brand-purple shrink-0 mt-0.5"></i>
+            <div class="space-y-1">
+              <h4 class="text-xs font-bold text-slate-200">Test Hesabı Hazır:</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Hızlıca giriş yapmak için e-posta olarak <code class="bg-slate-900 text-brand-pink px-1 py-0.5 rounded font-mono">test@signart.com</code>, şifre olarak <code class="bg-slate-900 text-brand-pink px-1 py-0.5 rounded font-mono">123456</code> yazabilirsiniz.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 3: SANATÇI PANELİ (DASHBOARD) -->
+    <!-- ======================================================= -->
+    <section id="page-dashboard" class="page-fade-in hidden max-w-3xl mx-auto w-full space-y-6">
+      <!-- User Info & Logout header -->
+      <div class="glass-panel p-6 rounded-3xl border border-white/10 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-purple to-brand-pink flex items-center justify-center text-white font-bold uppercase" id="dashboard-avatar">
+            U
+          </div>
+          <div>
+            <p class="text-xs text-slate-400">Sanatçı Oturumu</p>
+            <h3 class="text-base font-bold text-white" id="dashboard-welcome-name">Hoş geldin, Değerli Sanatçı</h3>
+          </div>
+        </div>
+        
+        <button onclick="app.handleLogout()" class="flex items-center space-x-2 text-slate-400 hover:text-red-400 transition duration-200 text-sm font-medium">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Çıkış Yap</span>
+        </button>
+      </div>
+
+      <!-- Dashboard Cards Menu Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        
+        <!-- Card 1: Profil Bilgileri -->
+        <div class="glass-panel p-6 rounded-3xl border border-white/10 flex flex-col justify-between space-y-4 hover:border-brand-purple/30 transition duration-300">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-purple to-brand-pink flex items-center justify-center text-white font-bold uppercase text-lg" id="dashboard-card-avatar">
+              U
+            </div>
+            <div>
+              <h4 class="text-base font-bold text-white" id="profile-card-name">Sanatçı Adı</h4>
+              <p class="text-xs text-slate-400" id="profile-card-email">artist@email.com</p>
+            </div>
+          </div>
+          <div class="border-t border-white/5 pt-4 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-400"><span>Hesap Türü:</span> <span class="font-bold text-brand-gold">Sanatçı</span></div>
+            <div class="flex justify-between text-slate-400"><span>Üretilen Sertifika:</span> <span class="font-bold text-white" id="profile-card-stats-count">0</span></div>
+          </div>
+        </div>
+
+        <!-- Card 2: Sertifika Üret -->
+        <div onclick="app.navigateTo('certificate-form')" class="glass-panel p-6 rounded-3xl border border-white/10 flex flex-col justify-between space-y-6 hover:border-brand-purple/50 cursor-pointer group transition duration-300 transform hover:-translate-y-1">
+          <div class="space-y-3">
+            <div class="w-12 h-12 bg-brand-purple/10 rounded-2xl flex items-center justify-center border border-brand-purple/20 group-hover:bg-brand-purple/20 transition duration-300">
+              <i data-lucide="award" class="w-6 h-6 text-brand-purple"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-bold text-white group-hover:text-brand-purple transition duration-200">Sertifika Üret</h4>
+              <p class="text-xs text-slate-400 leading-relaxed mt-1">Eserleriniz için benzersiz tescil kodları ve dijital özgünlük belgeleri oluşturun.</p>
+            </div>
+          </div>
+          <div class="text-xs text-brand-purple font-semibold flex items-center space-x-1">
+            <span>Şimdi Üret</span>
+            <i data-lucide="chevron-right" class="w-3 h-3 transform group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+
+        <!-- Card 3: QR Kod Tara -->
+        <div onclick="app.navigateTo('qr')" class="glass-panel p-6 rounded-3xl border border-white/10 flex flex-col justify-between space-y-6 hover:border-brand-gold/50 cursor-pointer group transition duration-300 transform hover:-translate-y-1">
+          <div class="space-y-3">
+            <div class="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20 group-hover:bg-brand-gold/20 transition duration-300">
+              <i data-lucide="qr-code" class="w-6 h-6 text-brand-gold"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-bold text-white group-hover:text-brand-gold transition duration-200">QR Kod Tara</h4>
+              <p class="text-xs text-slate-400 leading-relaxed mt-1">Fiziksel sertifikalardaki karekodları tarayarak orijinallik doğrulaması yapın.</p>
+            </div>
+          </div>
+          <div class="text-xs text-brand-gold font-semibold flex items-center space-x-1">
+            <span>Tarayıcıyı Aç</span>
+            <i data-lucide="chevron-right" class="w-3 h-3 transform group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+
+        <!-- Card 4: Ayarlar -->
+        <div onclick="app.navigateTo('settings')" class="glass-panel p-6 rounded-3xl border border-white/10 flex flex-col justify-between space-y-6 hover:border-brand-pink/50 cursor-pointer group transition duration-300 transform hover:-translate-y-1">
+          <div class="space-y-3">
+            <div class="w-12 h-12 bg-brand-pink/10 rounded-2xl flex items-center justify-center border border-brand-pink/20 group-hover:bg-brand-pink/20 transition duration-300">
+              <i data-lucide="settings" class="w-6 h-6 text-brand-pink"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-bold text-white group-hover:text-brand-pink transition duration-200">Sistem Ayarları</h4>
+              <p class="text-xs text-slate-400 leading-relaxed mt-1">Mock API durumunu, API adresini ve sunucu bağlantı parametrelerini özelleştirin.</p>
+            </div>
+          </div>
+          <div class="text-xs text-brand-pink font-semibold flex items-center space-x-1">
+            <span>Ayarları Düzenle</span>
+            <i data-lucide="chevron-right" class="w-3 h-3 transform group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 3B: SERTİFİKA OLUŞTURUCU (CERTIFICATE BUILDER PAGE) -->
+    <!-- ======================================================= -->
+    <section id="page-certificate-form" class="page-fade-in hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-7xl mx-auto w-full">
+      <!-- Back Button -->
+      <div class="col-span-12">
+        <button onclick="app.navigateTo('dashboard')" class="flex items-center space-x-2 text-slate-400 hover:text-white transition duration-200 text-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Panel'e Dön</span>
+        </button>
+      </div>
+
+      <!-- Left Column: Form & Theme Selector (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        <div class="glass-panel p-6 rounded-3xl border border-white/10 space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+              <i data-lucide="award" class="w-5 h-5 text-brand-gold"></i>
+              <span>Sertifika Oluşturucu</span>
+            </h2>
+            <p class="text-slate-400 text-xs">
+              Şablon seçin ve eser detaylarını doldurarak canlı ön izlemeyi inceleyin.
+            </p>
+          </div>
+
+          <!-- Collapsible Template Selection Panel -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">1. Sertifika Şablonu</label>
+              <button type="button" onclick="app.toggleThemePanel()" id="btn-toggle-themes" class="text-xs text-brand-purple hover:text-brand-purple/80 font-semibold flex items-center space-x-1 transition duration-200">
+                <span id="toggle-themes-text">Şablon Değiştir</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 transform transition-transform duration-200" id="toggle-themes-icon"></i>
+              </button>
+            </div>
+            
+            <!-- Selected template indicator -->
+            <div id="selected-theme-indicator" class="flex items-center space-x-3 bg-slate-900/60 border border-white/5 p-3 rounded-xl">
+              <div class="w-10 h-10 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center bg-slate-950" id="selected-theme-thumb">
+                <div class="w-5 h-5 rounded-full bg-[#fbfaf5] border border-[#b78a38]"></div>
+              </div>
+              <div>
+                <span class="text-xs text-slate-400 block">Seçilen Tasarım</span>
+                <span class="text-sm font-bold text-white block" id="selected-theme-name">Klasik Altın</span>
+              </div>
+            </div>
+
+            <!-- Collapsible Grid Container -->
+            <div id="theme-selector-grid-wrapper" class="hidden transition-all duration-300 overflow-hidden mt-3">
+              <div class="grid grid-cols-3 gap-2 bg-slate-900/80 border border-white/5 p-3 rounded-2xl" id="theme-selector-grid">
+                <!-- Sade Temalar -->
+                <button type="button" onclick="app.selectTheme('gold')" id="theme-btn-gold" class="relative aspect-square rounded-xl bg-slate-950 border-2 border-brand-purple flex flex-col items-center justify-center p-2 text-center group hover:border-brand-purple/80 transition duration-200 shadow-[0_0_15px_#8b5cf6]">
+                  <div class="w-6 h-6 rounded-full bg-[#fbfaf5] border border-[#b78a38] mb-1"></div>
+                  <span class="text-[10px] text-slate-300 font-medium leading-none">Klasik Altın</span>
+                </button>
+                <button type="button" onclick="app.selectTheme('dark')" id="theme-btn-dark" class="relative aspect-square rounded-xl bg-slate-950 border-2 border-white/5 flex flex-col items-center justify-center p-2 text-center group hover:border-brand-purple/40 transition duration-200">
+                  <div class="w-6 h-6 rounded-full bg-[#0f172a] border border-[#64748b] mb-1"></div>
+                  <span class="text-[10px] text-slate-300 font-medium leading-none">Modern Koyu</span>
+                </button>
+                <button type="button" onclick="app.selectTheme('parchment')" id="theme-btn-parchment" class="relative aspect-square rounded-xl bg-slate-950 border-2 border-white/5 flex flex-col items-center justify-center p-2 text-center group hover:border-brand-purple/40 transition duration-200">
+                  <div class="w-6 h-6 rounded-full bg-[#f4edd8] border border-[#854d0e] mb-1"></div>
+                  <span class="text-[10px] text-slate-300 font-medium leading-none">Parşömen</span>
+                </button>
+                
+                <!-- Görsel Temalar -->
+                <button type="button" onclick="app.selectTheme('gorsel1')" id="theme-btn-gorsel1" class="relative aspect-square rounded-xl overflow-hidden border-2 border-white/5 group hover:border-brand-purple/40 transition duration-200">
+                  <img src="assets/gorsel1.webp" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="text-[9px] text-white font-semibold">Tasarım 1</span></div>
+                </button>
+                <button type="button" onclick="app.selectTheme('gorsel2')" id="theme-btn-gorsel2" class="relative aspect-square rounded-xl overflow-hidden border-2 border-white/5 group hover:border-brand-purple/40 transition duration-200">
+                  <img src="assets/gorsel2.webp" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="text-[9px] text-white font-semibold">Tasarım 2</span></div>
+                </button>
+                <button type="button" onclick="app.selectTheme('gorsel3')" id="theme-btn-gorsel3" class="relative aspect-square rounded-xl overflow-hidden border-2 border-white/5 group hover:border-brand-purple/40 transition duration-200">
+                  <img src="assets/gorsel3.webp" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="text-[9px] text-white font-semibold">Tasarım 3</span></div>
+                </button>
+                <button type="button" onclick="app.selectTheme('gorsel4')" id="theme-btn-gorsel4" class="relative aspect-square rounded-xl overflow-hidden border-2 border-white/5 group hover:border-brand-purple/40 transition duration-200">
+                  <img src="assets/gorsel4.webp" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="text-[9px] text-white font-semibold">Tasarım 4</span></div>
+                </button>
+                <button type="button" onclick="app.selectTheme('gorsel5')" id="theme-btn-gorsel5" class="relative aspect-square rounded-xl overflow-hidden border-2 border-white/5 group hover:border-brand-purple/40 transition duration-200">
+                  <img src="assets/gorsel5.jpg" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="text-[9px] text-white font-semibold">Tasarım 5</span></div>
+                </button>
+                <button type="button" onclick="app.selectTheme('gorsel6')" id="theme-btn-gorsel6" class="relative aspect-square rounded-xl overflow-hidden border-2 border-white/5 group hover:border-brand-purple/40 transition duration-200">
+                  <img src="assets/gorsel6.jpg" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="text-[9px] text-white font-semibold">Tasarım 6</span></div>
+                </button>
+              </div>
+            </div>
+            <!-- Hidden input to store chosen theme -->
+            <input type="hidden" id="work-theme" value="gold">
+          </div>
+
+          <!-- Document Size Selector -->
+          <div class="space-y-2">
+            <label for="cert-doc-size" class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">2. Sertifika Boyutu (Baskı/Çıktı)</label>
+            <select id="cert-doc-size" onchange="app.updateLivePreview();" required
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+              <option value="a4">A4 Yatay (Standart Tescil Belgesi)</option>
+              <option value="a5">A5 Yatay (Orta Boy Kartuş)</option>
+              <option value="a6">A6 Yatay (Kompakt El Kartı)</option>
+              <option value="kare">Kare Belge (Kare Baskı Şablonu)</option>
+            </select>
+          </div>
+
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">3. Eser Bilgilerini Doldurun</label>
+
+          <!-- Form Details -->
+          <form id="form-certificate" onsubmit="app.generateCertificate(event)" class="space-y-4">
+            <div class="space-y-2">
+              <label for="work-title" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Eser Adı</label>
+              <input type="text" id="work-title" placeholder="Örn: Gece Mavisi" required oninput="app.updateLivePreview()"
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label for="work-dimensions" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Eser Boyutları</label>
+                <select id="work-dimensions" onchange="app.handleDimensionsChange(); app.updateLivePreview();" required
+                        class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+                  <option value="50 x 70 cm">50 x 70 cm</option>
+                  <option value="35 x 50 cm">35 x 50 cm</option>
+                  <option value="70 x 100 cm">70 x 100 cm</option>
+                  <option value="100 x 100 cm">100 x 100 cm</option>
+                  <option value="custom">Özel Boyut...</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label for="work-year" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Yapım Yılı</label>
+                <select id="work-year" required onchange="app.updateLivePreview()"
+                        class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition duration-200 text-sm"></select>
+              </div>
+            </div>
+
+            <!-- Hidden input for custom dimensions -->
+            <input type="text" id="work-dimensions-custom" placeholder="Örn: 80 x 120 cm veya 3D Heykel" oninput="app.updateLivePreview()"
+                   class="w-full hidden bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm mt-2">
+
+            <div class="space-y-2">
+              <label for="work-material" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kullanılan Malzeme (Teknik)</label>
+              <select id="work-material" onchange="app.handleMaterialChange(); app.updateLivePreview();" required
+                      class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition duration-200 text-sm">
+                <option value="Tuval Üzerine Akrilik Boya">Tuval Üzerine Akrilik Boya</option>
+                <option value="Tuval Üzerine Yağlı Boya">Tuval Üzerine Yağlı Boya</option>
+                <option value="Fine Art Kağıt Baskı">Fine Art Kağıt Baskı</option>
+                <option value="Dijital Sanat (E-Baskı)">Dijital Sanat (E-Baskı)</option>
+                <option value="Karışık Teknik">Karışık Teknik</option>
+                <option value="custom">Özel Malzeme / Teknik...</option>
+              </select>
+              <!-- Hidden input for custom material -->
+              <input type="text" id="work-material-custom" placeholder="Örn: Bronz Döküm, Ahşap Oyma" oninput="app.updateLivePreview()"
+                     class="w-full hidden bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple transition duration-200 text-sm mt-2">
+            </div>
+
+            <button type="submit" id="btn-generate" class="w-full glow-btn bg-gradient-to-r from-brand-purple via-violet-600 to-brand-pink text-white py-4 rounded-xl transition duration-300 font-bold text-sm tracking-wider uppercase flex items-center justify-center space-x-2 mt-6">
+              <i data-lucide="sparkles" class="w-5 h-5 animate-pulse text-brand-goldLight"></i>
+              <span>Sertifika Numarası Üret</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Preview Card (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col items-center justify-start w-full">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3 block">Canlı Sertifika Ön İzlemesi</span>
+        <!-- Centered Certificate Wrapper -->
+        <div class="w-full flex justify-center items-center p-1">
+          <div id="live-cert-container" class="cert-theme-gold cert-border-accent text-center flex flex-col justify-between overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.6)] rounded-2xl">
+            <!-- Corner Accents -->
+            <div class="absolute top-2 left-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+            <div class="absolute top-2 right-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+            <div class="absolute bottom-2 left-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+            <div class="absolute bottom-2 right-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+
+            <!-- Watermark background symbol -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02]">
+              <i data-lucide="award" class="w-[300px] h-[300px] text-brand-purple"></i>
+            </div>
+
+            <!-- Content overlay card -->
+            <div id="live-cert-content-overlay" class="w-full h-full flex flex-col justify-between flex-grow rounded-xl transition duration-300">
+              <!-- Header -->
+              <div class="space-y-2 border-b cert-divider pb-3 md:pb-4 relative">
+                <p class="font-sans text-xs md:text-sm tracking-[0.3em] cert-text-accent uppercase font-bold">Certificate of Authenticity</p>
+              </div>
+
+              <!-- Body Text -->
+              <div class="py-3 md:py-4 space-y-3 relative">
+                <p class="font-serif text-sm italic text-slate-600 leading-relaxed max-w-md mx-auto">
+                  Bu belge, aşağıda detayları belirtilen sanat eserinin tamamen özgün ve sanatçının orijinal tasarımı olduğunu onaylamak üzere düzenlenmiştir.
+                </p>
+
+                <!-- Details Table -->
+                <div class="max-w-xs mx-auto border-t border-b cert-divider py-3 font-sans text-xs space-y-1.5 text-left">
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Eser Adı:</span> <span class="font-bold text-slate-950 italic" id="live-cert-title">Eser Adı</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Sanatçı:</span> <span class="font-bold text-slate-950" id="live-cert-artist">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Boyutlar:</span> <span class="font-bold text-slate-950" id="live-cert-dimensions">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Malzeme / Teknik:</span> <span class="font-bold text-slate-950" id="live-cert-material">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Yapım Yılı:</span> <span class="font-bold text-slate-950" id="live-cert-year">-</span></div>
+                </div>
+              </div>
+
+              <!-- Footer Details -->
+              <div class="flex justify-between items-end border-t cert-divider pt-3 md:pt-4 font-sans text-[10px]">
+                <div class="text-left space-y-1">
+                  <span class="text-slate-400 block uppercase tracking-wider">Düzenleme Tarihi</span>
+                  <span class="font-bold text-slate-700" id="live-cert-date">-</span>
+                </div>
+                <div class="text-center">
+                  <span class="font-serif italic text-lg font-bold cert-signature block" id="live-cert-signature-name">-</span>
+                  <div class="w-24 h-[1px] bg-slate-300 mx-auto my-1"></div>
+                  <span class="text-slate-400 block uppercase tracking-wider">Sanatçı İmzası</span>
+                </div>
+              </div>
+
+              <!-- Code display on certificate itself -->
+              <div class="mt-3 md:mt-4 pt-2 border-t cert-divider">
+                <span class="font-mono text-[10px] md:text-xs tracking-widest cert-text-accent font-bold">Sertifika Numarası: ART-2026-XXXX-XXXX</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 3C: SİSTEM AYARLARI (SETTINGS PAGE) -->
+    <!-- ======================================================= -->
+    <section id="page-settings" class="page-fade-in hidden max-w-md mx-auto w-full space-y-6">
+      <button onclick="app.navigateTo('dashboard')" class="flex items-center space-x-2 text-slate-400 hover:text-white transition duration-200 text-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Panel'e Dön</span>
+      </button>
+
+      <div class="glass-panel p-8 rounded-3xl border border-white/10 space-y-6">
+        <div class="space-y-1">
+          <h2 class="text-2xl font-bold text-white flex items-center space-x-2">
+            <i data-lucide="settings" class="w-6 h-6 text-brand-pink"></i>
+            <span>Bağlantı ve API Ayarları</span>
+          </h2>
+          <p class="text-slate-400 text-sm">
+            Backend API bağlantı tipini ve adresini buradan yapılandırabilirsiniz.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between pb-2 border-b border-white/5">
+            <span class="text-sm text-slate-300 font-medium">Mock API Modu (Yerel Simülasyon)</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="api-mock-toggle" onchange="app.handleMockToggle()" class="sr-only peer" checked>
+              <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-purple peer-checked:after:bg-white peer-checked:after:border-brand-purple"></div>
+            </label>
+          </div>
+
+          <div class="space-y-2">
+            <label for="api-base-url" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Backend API Base URL</label>
+            <input type="text" id="api-base-url" placeholder="Örn: http://localhost:5000/api" disabled
+                   class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-brand-purple disabled:opacity-40 transition duration-200 text-sm">
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Mock modunu kapatırsanız, tescil işlemleri bu URL adresine HTTP POST istekleri olarak gönderilir.
+            </p>
+          </div>
+
+          <button onclick="app.saveConfig()" class="w-full bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-95 text-white py-3 rounded-xl transition duration-300 font-semibold shadow-lg shadow-brand-purple/20 text-sm flex items-center justify-center space-x-2 mt-4">
+            <i data-lucide="save" class="w-4 h-4"></i>
+            <span>Yapılandırmayı Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SECTION 4: SERTİFİKA ÖN İZLEME VE KOD EKRANI (PREVIEW) -->
+    <!-- ======================================================= -->
+    <section id="page-preview" class="page-fade-in hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- Back Button -->
+      <div class="col-span-12">
+        <button onclick="app.handlePreviewBack()" class="flex items-center space-x-2 text-slate-400 hover:text-white transition duration-200 text-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Geri Dön</span>
+        </button>
+      </div>
+      
+      <!-- Left side: Digital Physical Certificate Preview (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col items-center justify-start w-full">
+        <div class="w-full flex justify-center items-center p-1">
+          <div id="cert-container" class="cert-theme-gold cert-border-accent text-center flex flex-col justify-between overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.6)] rounded-2xl">
+            <!-- Corner Accents -->
+            <div class="absolute top-2 left-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+            <div class="absolute top-2 right-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+            <div class="absolute bottom-2 left-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+            <div class="absolute bottom-2 right-2 text-brand-gold"><i data-lucide="sparkles" class="w-6 h-6 opacity-30"></i></div>
+
+            <!-- Watermark background symbol -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02]">
+              <i data-lucide="award" class="w-[300px] h-[300px] text-brand-purple"></i>
+            </div>
+
+            <!-- Content overlay card -->
+            <div id="cert-content-overlay" class="w-full h-full flex flex-col justify-between flex-grow rounded-xl transition duration-300">
+              <!-- Header -->
+              <div class="space-y-2 border-b cert-divider pb-3 md:pb-4 relative">
+                <p class="font-sans text-xs md:text-sm tracking-[0.3em] cert-text-accent uppercase font-bold">Certificate of Authenticity</p>
+              </div>
+
+              <!-- Body Text -->
+              <div class="py-3 md:py-4 space-y-3 relative">
+                <p class="font-serif text-sm italic text-slate-600 leading-relaxed max-w-md mx-auto">
+                  Bu belge, aşağıda detayları belirtilen sanat eserinin tamamen özgün ve sanatçının orijinal tasarımı olduğunu onaylamak üzere düzenlenmiştir.
+                </p>
+
+                <!-- Details Table -->
+                <div class="max-w-xs mx-auto border-t border-b cert-divider py-3 font-sans text-xs space-y-1.5 text-left">
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Eser Adı:</span> <span class="font-bold text-slate-950 italic" id="cert-title">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Sanatçı:</span> <span class="font-bold text-slate-950" id="cert-artist">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Boyutlar:</span> <span class="font-bold text-slate-950" id="cert-dimensions">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Malzeme / Teknik:</span> <span class="font-bold text-slate-950" id="cert-material">-</span></div>
+                  <div class="flex justify-between"><span class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Yapım Yılı:</span> <span class="font-bold text-slate-950" id="cert-year">-</span></div>
+                </div>
+              </div>
+
+              <!-- Footer Details -->
+              <div class="flex justify-between items-end border-t cert-divider pt-3 md:pt-4 font-sans text-[10px]">
+                <div class="text-left space-y-1">
+                  <span class="text-slate-400 block uppercase tracking-wider">Düzenleme Tarihi</span>
+                  <span class="font-bold text-slate-700" id="cert-date">-</span>
+                </div>
+                <div class="text-center">
+                  <span class="font-serif italic text-lg font-bold cert-signature block" id="cert-signature-name">-</span>
+                  <div class="w-24 h-[1px] bg-slate-300 mx-auto my-1"></div>
+                  <span class="text-slate-400 block uppercase tracking-wider">Sanatçı İmzası</span>
+                </div>
+              </div>
+
+              <!-- Code display on certificate itself -->
+              <div class="mt-3 md:mt-4 pt-2 border-t cert-divider">
+                <span class="font-mono text-[10px] md:text-xs tracking-widest cert-text-accent font-bold" id="cert-code-on-paper">Sertifika Numarası: ART-2026-XXXX-XXXX</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: Actions, Code Details, Config Panel (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Code Copy Card -->
+        <div class="glass-panel p-8 rounded-3xl border border-white/10 space-y-6">
+          <div class="text-center space-y-2">
+            <div class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-400 border border-green-500/20">
+              <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white">Sertifikanız Hazırlandı!</h3>
+            <p class="text-slate-400 text-sm">
+              Eserinizin sertifika kodu veri tabanına kaydedildi ve doğrulanabilir hale getirildi.
+            </p>
+          </div>
+
+          <!-- Glowing Code Display Box -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 text-center space-y-2 relative group cursor-pointer" onclick="app.copyCodeToClipboard()">
+            <div class="absolute top-2 right-2 opacity-50 group-hover:opacity-100 transition-opacity">
+              <i data-lucide="copy" class="w-4 h-4 text-slate-400" id="code-box-copy-icon"></i>
+            </div>
+            <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Tescil Numarası</p>
+            <div class="text-2xl md:text-3xl font-mono font-bold tracking-wider text-brand-gold glow-text select-all" id="generated-code-display">
+              ART-2026-X9B2
+            </div>
+            <p class="text-[10px] text-slate-500">(Kopyalamak için tıklayın)</p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="app.copyCodeToClipboard()" class="flex-1 bg-slate-900 hover:bg-slate-800 border border-white/10 hover:border-brand-gold/40 text-slate-200 py-3.5 rounded-xl transition duration-300 font-semibold flex items-center justify-center space-x-2 text-sm" id="btn-copy">
+              <i data-lucide="copy" class="w-4 h-4 text-brand-gold"></i>
+              <span id="btn-copy-text">Kodu Kopyala</span>
+            </button>
+            
+            <button onclick="app.navigateTo('dashboard')" class="flex-1 bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-90 text-white py-3.5 rounded-xl transition duration-300 font-semibold flex items-center justify-center space-x-2 text-sm">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Yeni Sertifika</span>
+            </button>
+          </div>
+
+          <!-- Print / Save PDF Button -->
+          <button onclick="window.print()" class="w-full bg-slate-900 hover:bg-slate-800 border border-white/10 hover:border-brand-purple/40 text-slate-200 py-3.5 rounded-xl transition duration-300 font-semibold flex items-center justify-center space-x-2 text-sm mt-3">
+            <i data-lucide="printer" class="w-4 h-4 text-brand-purple"></i>
+            <span>Yazdır / PDF Kaydet</span>
+          </button>
+        </div>
+
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-white/5 py-6 text-center text-xs text-slate-500 bg-slate-950/80 z-10">
+    <p>© 2026 signArt. Tüm Hakları Saklıdır. Sanatsal Özgünlük Tescil Sistemi.</p>
+  </footer>
+
+  <!-- Main JavaScript App -->
+  <script src="app.js"></script>
+</body>
+</html>
