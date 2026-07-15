@@ -116,9 +116,31 @@ const app = {
     }
   },
 
+  // Tarayıcıda daha önce beğenilen sertifikaları hatırla (basit tekrar-beğenme engeli)
+  getLikedCerts() {
+    try {
+      return JSON.parse(localStorage.getItem('signart_liked_certs') || '[]');
+    } catch {
+      return [];
+    }
+  },
+
+  markAsLiked(code) {
+    const liked = this.getLikedCerts();
+    if (!liked.includes(code)) {
+      liked.push(code);
+      localStorage.setItem('signart_liked_certs', JSON.stringify(liked));
+    }
+  },
+
   // Tek bir galeri kartının HTML'ini üretir
   renderGalleryCard(cert) {
     const img = cert.image_url || 'https://placehold.co/600x800/1a1a1a/94a3b8?text=Görsel+Yok';
+    const alreadyLiked = this.getLikedCerts().includes(cert.code);
+    const likeBtnClasses = alreadyLiked
+      ? 'text-pink-500 cursor-default'
+      : 'text-slate-400 hover:text-pink-400 cursor-pointer';
+
     return `
       <div class="flex flex-col items-center group">
         <div class="gallery-frame-wood p-1 transition-transform duration-500 hover:scale-[1.02] cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">
@@ -126,22 +148,51 @@ const app = {
             <img src="${img}" alt="${cert.title}" class="w-72 h-96 object-cover shadow-md">
           </div>
         </div>
-        <div class="mt-6 text-center space-y-1 w-full max-w-[340px] bg-slate-900/40 p-4 rounded-xl border border-white/5 backdrop-blur-sm cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">
-          <h3 class="text-lg font-bold text-white italic">${cert.title}</h3>
-          <p class="text-slate-400 text-sm font-medium">${cert.artist_name}</p>
-          <div class="flex justify-center space-x-2 text-xs text-slate-500 pt-1 border-t border-white/5 mt-2">
+        <div class="mt-6 text-center space-y-1 w-full max-w-[340px] bg-slate-900/40 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
+          <h3 class="text-lg font-bold text-white italic cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">${cert.title}</h3>
+          <p class="text-slate-400 text-sm font-medium cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">${cert.artist_name}</p>
+          <div class="flex justify-center space-x-2 text-xs text-slate-500 pt-1 border-t border-white/5 mt-2 cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">
             <span>${cert.material || '-'}</span>
             <span>•</span>
             <span>${cert.dimensions || '-'}</span>
             <span>•</span>
             <span>${cert.year || '-'}</span>
           </div>
-          <div class="flex items-center justify-center space-x-1 text-xs text-pink-400 pt-1">
-            <i data-lucide="heart" class="w-3 h-3"></i>
-            <span>${cert.like_count || 0}</span>
-          </div>
+          <button onclick="event.stopPropagation(); app.likeCertificateFromCard(this, '${cert.code}')"
+                  class="w-full flex items-center justify-center space-x-1 text-xs pt-2 transition duration-200 ${likeBtnClasses}"
+                  ${alreadyLiked ? 'disabled' : ''}>
+            <i data-lucide="heart" class="w-3.5 h-3.5 ${alreadyLiked ? 'fill-pink-500' : ''}"></i>
+            <span class="card-like-count">${cert.like_count || 0}</span>
+            <span>${alreadyLiked ? 'Beğenildi' : 'Beğen'}</span>
+          </button>
         </div>
       </div>`;
+  },
+
+  // Karttaki kalp butonuna direkt basınca (modalı açmadan) beğenme
+  async likeCertificateFromCard(buttonEl, code) {
+    if (this.getLikedCerts().includes(code)) return;
+
+    try {
+      const response = await fetch(`${this.state.apiSettings.baseUrl}/certificates/${code}/like`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error('Beğeni işlemi başarısız.');
+
+      this.markAsLiked(code);
+
+      const countEl = buttonEl.querySelector('.card-like-count');
+      if (countEl) countEl.textContent = data.like_count;
+
+      buttonEl.disabled = true;
+      buttonEl.classList.remove('text-slate-400', 'hover:text-pink-400', 'cursor-pointer');
+      buttonEl.classList.add('text-pink-500', 'cursor-default');
+      buttonEl.querySelector('i').classList.add('fill-pink-500');
+      buttonEl.querySelector('span:last-child').textContent = 'Beğenildi';
+    } catch (err) {
+      this.showToast('Beğeni gönderilemedi.', 'error');
+    }
   },
 
   // Bir esere tıklayınca detay modalını açar
@@ -173,6 +224,17 @@ const app = {
       document.getElementById('detail-code').textContent = cert.code;
       document.getElementById('detail-like-count').textContent = cert.like_count || 0;
 
+      // Daha önce beğenilmişse butonu pasif göster
+      const likeBtn = document.getElementById('detail-like-btn');
+      const alreadyLiked = this.getLikedCerts().includes(cert.code);
+      if (alreadyLiked) {
+        likeBtn.disabled = true;
+        likeBtn.classList.add('opacity-60', 'cursor-default');
+      } else {
+        likeBtn.disabled = false;
+        likeBtn.classList.remove('opacity-60', 'cursor-default');
+      }
+
       loading.classList.add('hidden');
       content.classList.remove('hidden');
       this.initLucide();
@@ -190,6 +252,8 @@ const app = {
   // Bir sertifikayı beğenme
   async likeCertificate(code) {
     if (!code) return;
+    if (this.getLikedCerts().includes(code)) return;
+
     try {
       const response = await fetch(`${this.state.apiSettings.baseUrl}/certificates/${code}/like`, {
         method: 'POST'
@@ -197,8 +261,16 @@ const app = {
       const data = await response.json();
       if (!response.ok) throw new Error('Beğeni işlemi başarısız.');
 
+      this.markAsLiked(code);
+
       const countEl = document.getElementById('detail-like-count');
       if (countEl) countEl.textContent = data.like_count;
+
+      const likeBtn = document.getElementById('detail-like-btn');
+      if (likeBtn) {
+        likeBtn.disabled = true;
+        likeBtn.classList.add('opacity-60', 'cursor-default');
+      }
     } catch (err) {
       this.showToast('Beğeni gönderilemedi.', 'error');
     }
