@@ -6,11 +6,13 @@ const app = {
     currentPage: 'gallery',
     user: null,
     apiSettings: {
-      mockMode: true,
+      mockMode: false,
       baseUrl: 'http://localhost:5000/api'
     },
     generatedCertificate: null,
-    certificates: []
+    certificates: [],
+    selectedImageFile: null,
+    activeDetailCode: null
   },
 
   // Initialize Application
@@ -21,6 +23,7 @@ const app = {
     this.updateNavigationUI();
     this.navigateTo(this.state.currentPage);
     this.initConfigUI();
+    this.loadGallery();
   },
 
   // Load state from localStorage on startup
@@ -64,6 +67,184 @@ const app = {
     }
   },
 
+  // ---------------------------------------------------------
+  // GALERİ: Backend'den gerçek sertifikaları çekip gösterme
+  // ---------------------------------------------------------
+  async loadGallery() {
+    const grid = document.getElementById('gallery-grid');
+    if (!grid) return;
+
+    // Mock modundaysak API çağırmadan uyarı göster
+    if (this.state.apiSettings.mockMode) {
+      grid.innerHTML = `
+        <div class="col-span-full text-center py-16 text-slate-500">
+          <i data-lucide="info" class="w-8 h-8 mx-auto mb-3"></i>
+          <p class="text-sm">Mock mod aktif olduğu için galeri gerçek verilerle doldurulamıyor. Ayarlar'dan mock modu kapatın.</p>
+        </div>`;
+      this.initLucide();
+      return;
+    }
+
+    try {
+      const response = await fetch(`${this.state.apiSettings.baseUrl}/certificates`);
+      const data = await response.json();
+
+      if (!response.ok || !data.certificates) {
+        throw new Error('Sertifikalar yüklenemedi.');
+      }
+
+      this.state.certificates = data.certificates;
+
+      if (data.certificates.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 text-slate-500">
+            <i data-lucide="image-off" class="w-8 h-8 mx-auto mb-3"></i>
+            <p class="text-sm">Henüz sergilenen bir eser yok. İlk sertifikayı siz oluşturun!</p>
+          </div>`;
+      } else {
+        grid.innerHTML = data.certificates.map(cert => this.renderGalleryCard(cert)).join('');
+      }
+
+      this.initLucide();
+    } catch (err) {
+      grid.innerHTML = `
+        <div class="col-span-full text-center py-16 text-slate-500">
+          <i data-lucide="wifi-off" class="w-8 h-8 mx-auto mb-3"></i>
+          <p class="text-sm">Galeri yüklenemedi. Sunucu bağlantısını kontrol edin.</p>
+        </div>`;
+      this.initLucide();
+    }
+  },
+
+  // Tek bir galeri kartının HTML'ini üretir
+  renderGalleryCard(cert) {
+    const img = cert.image_url || 'https://placehold.co/600x800/1a1a1a/94a3b8?text=Görsel+Yok';
+    return `
+      <div class="flex flex-col items-center group">
+        <div class="gallery-frame-wood p-1 transition-transform duration-500 hover:scale-[1.02] cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">
+          <div class="passe-partout">
+            <img src="${img}" alt="${cert.title}" class="w-72 h-96 object-cover shadow-md">
+          </div>
+        </div>
+        <div class="mt-6 text-center space-y-1 w-full max-w-[340px] bg-slate-900/40 p-4 rounded-xl border border-white/5 backdrop-blur-sm cursor-pointer" onclick="app.openCertificateDetail('${cert.code}')">
+          <h3 class="text-lg font-bold text-white italic">${cert.title}</h3>
+          <p class="text-slate-400 text-sm font-medium">${cert.artist_name}</p>
+          <div class="flex justify-center space-x-2 text-xs text-slate-500 pt-1 border-t border-white/5 mt-2">
+            <span>${cert.material || '-'}</span>
+            <span>•</span>
+            <span>${cert.dimensions || '-'}</span>
+            <span>•</span>
+            <span>${cert.year || '-'}</span>
+          </div>
+          <div class="flex items-center justify-center space-x-1 text-xs text-pink-400 pt-1">
+            <i data-lucide="heart" class="w-3 h-3"></i>
+            <span>${cert.like_count || 0}</span>
+          </div>
+        </div>
+      </div>`;
+  },
+
+  // Bir esere tıklayınca detay modalını açar
+  async openCertificateDetail(code) {
+    this.state.activeDetailCode = code;
+    const modal = document.getElementById('cert-detail-modal');
+    const loading = document.getElementById('detail-loading');
+    const content = document.getElementById('detail-content');
+
+    modal.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    content.classList.add('hidden');
+
+    try {
+      const response = await fetch(`${this.state.apiSettings.baseUrl}/certificates/${code}`);
+      const data = await response.json();
+
+      if (!response.ok || !data.certificate) {
+        throw new Error('Sertifika bulunamadı.');
+      }
+
+      const cert = data.certificate;
+      document.getElementById('detail-image').src = cert.image_url || 'https://placehold.co/600x400/1a1a1a/94a3b8?text=Görsel+Yok';
+      document.getElementById('detail-title').textContent = cert.title;
+      document.getElementById('detail-artist').textContent = cert.artist_name;
+      document.getElementById('detail-material').textContent = cert.material || '-';
+      document.getElementById('detail-dimensions').textContent = cert.dimensions || '-';
+      document.getElementById('detail-year').textContent = cert.year || '-';
+      document.getElementById('detail-code').textContent = cert.code;
+      document.getElementById('detail-like-count').textContent = cert.like_count || 0;
+
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+      this.initLucide();
+    } catch (err) {
+      this.closeCertificateDetail();
+      this.showToast('Sertifika bilgileri yüklenemedi.', 'error');
+    }
+  },
+
+  closeCertificateDetail() {
+    document.getElementById('cert-detail-modal').classList.add('hidden');
+    this.state.activeDetailCode = null;
+  },
+
+  // Bir sertifikayı beğenme
+  async likeCertificate(code) {
+    if (!code) return;
+    try {
+      const response = await fetch(`${this.state.apiSettings.baseUrl}/certificates/${code}/like`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error('Beğeni işlemi başarısız.');
+
+      const countEl = document.getElementById('detail-like-count');
+      if (countEl) countEl.textContent = data.like_count;
+    } catch (err) {
+      this.showToast('Beğeni gönderilemedi.', 'error');
+    }
+  },
+
+  // Sertifika formunda resim seçildiğinde önizleme göster
+  handleImageSelect(event) {
+    const file = event.target.files[0];
+    const errorEl = document.getElementById('error-work-image');
+    errorEl.classList.add('hidden');
+
+    if (!file) {
+      this.state.selectedImageFile = null;
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      errorEl.textContent = 'Sadece JPEG, PNG veya WEBP dosyaları kabul edilir.';
+      errorEl.classList.remove('hidden');
+      event.target.value = '';
+      this.state.selectedImageFile = null;
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      errorEl.textContent = 'Dosya boyutu 5MB\'ı geçemez.';
+      errorEl.classList.remove('hidden');
+      event.target.value = '';
+      this.state.selectedImageFile = null;
+      return;
+    }
+
+    this.state.selectedImageFile = file;
+
+    const preview = document.getElementById('work-image-preview');
+    const placeholderIcon = document.getElementById('work-image-placeholder-icon');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target.result;
+      preview.classList.remove('hidden');
+      if (placeholderIcon) placeholderIcon.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+  },
+
   // Navigation / SPA Router
   navigateTo(pageId) {
     const pages = ['gallery', 'qr', 'auth', 'dashboard', 'preview', 'certificate-form', 'settings'];
@@ -98,6 +279,8 @@ const app = {
       this.initConfigUI();
     } else if (pageId === 'certificate-form') {
       this.updateLivePreview();
+    } else if (pageId === 'gallery') {
+      this.loadGallery();
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -598,11 +781,17 @@ const app = {
     const dimensions = dimensionsSelect === 'custom' ? dimensionsCustom : dimensionsSelect;
     const material = materialSelect === 'custom' ? materialCustom : materialSelect;
 
+    // Mock modda değilsek resim zorunlu (backend resim istiyor)
+    if (!this.state.apiSettings.mockMode && !this.state.selectedImageFile) {
+      this.showValidationError('work-image', 'Lütfen eserinizin bir fotoğrafını yükleyin.');
+      return;
+    }
+
     try {
       this.showLoadingButton('form-certificate', true);
 
       let responseData;
-      
+
       const payload = {
         title,
         dimensions,
@@ -616,7 +805,7 @@ const app = {
 
       if (this.state.apiSettings.mockMode) {
         await this.delay(1500);
-        
+
         // Generate a random mock certificate number in style: ART-[YEAR]-[4 random alphanumeric characters]
         const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
         const randomHash = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -625,21 +814,36 @@ const app = {
           code: `ART-${year}-${randomStr}-${randomHash}`
         };
       } else {
+        // Gerçek API çağrısı - artık FormData ile (resim dosyası dahil)
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('dimensions', dimensions);
+        formData.append('year', year);
+        formData.append('material', material);
+        formData.append('theme', theme);
+        formData.append('docSize', docSize);
+        formData.append('artistName', this.state.user.name);
+        formData.append('artistEmail', this.state.user.email);
+        formData.append('image', this.state.selectedImageFile);
+
         const response = await fetch(`${this.state.apiSettings.baseUrl}/generate-code`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          // Dikkat: Content-Type başlığı BURADA elle set edilmiyor.
+          // Tarayıcı, FormData gönderirken multipart sınır (boundary) değerini
+          // kendisi ekler; elle 'multipart/form-data' yazarsak bu değer eksik kalır ve istek bozulur.
+          body: formData
         });
-        
+
         responseData = await response.json();
-        if (!response.ok) {
-          throw new Error(responseData.message || 'Sertifika üretilemedi.');
+        if (!response.ok || responseData.status === 'error') {
+          throw new Error(responseData.message || responseData.detail || 'Sertifika üretilemedi.');
         }
       }
 
       this.state.generatedCertificate = {
         ...payload,
         code: responseData.code,
+        imageUrl: responseData.image_url || null,
         date: new Date().toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })
       };
 
@@ -687,6 +891,11 @@ const app = {
       document.getElementById('form-certificate').reset();
       this.handleDimensionsChange();
       this.handleMaterialChange();
+      this.state.selectedImageFile = null;
+      const previewImg = document.getElementById('work-image-preview');
+      const placeholderIcon = document.getElementById('work-image-placeholder-icon');
+      if (previewImg) { previewImg.src = ''; previewImg.classList.add('hidden'); }
+      if (placeholderIcon) placeholderIcon.classList.remove('hidden');
 
     } catch (err) {
       this.showToast(err.message, 'error');
