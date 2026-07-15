@@ -2,6 +2,7 @@ import os
 import bcrypt
 import hashlib
 import psycopg2
+import requests
 
 from dotenv import load_dotenv
 from fastapi import HTTPException
@@ -10,6 +11,13 @@ from psycopg2.extras import RealDictCursor
 load_dotenv()
 # Supabase veritabanı bağlantı linkini .env dosyasından çekeceğiz
 DATABASE_URL = os.getenv("DB_LINK")
+
+# Supabase Storage (resim depolama) için ayarlar
+# SUPABASE_URL örn: https://xxxxx.supabase.co
+# SUPABASE_SERVICE_KEY: Supabase panelinde Settings > API > service_role key (secret, .env'de tutulacak)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+STORAGE_BUCKET = "certificate-images"  # Supabase panelinde bu isimde bir bucket oluşturulmalı (public)
 
 
 def get_db_connection():
@@ -69,11 +77,99 @@ def init_db():
             doc_size     TEXT,
             artist_name  TEXT,
             artist_email TEXT,
+            image_url    TEXT,
             like_count   INTEGER DEFAULT 0,
             created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
+    # Tablo daha önce oluşturulmuşsa ve image_url sütunu yoksa, ekle
+    cursor.execute("""
+        ALTER TABLE certificates ADD COLUMN IF NOT EXISTS image_url TEXT
+    """)
+
     conn.commit()
     cursor.close()
     conn.close()
+
+
+# ---------------------------
+# RESİM YÜKLEME (Supabase Storage)
+# ---------------------------
+def upload_image_to_supabase(file_bytes: bytes, filename: str, content_type: str) -> str:
+    """Resmi Supabase Storage'a yükler, herkese açık (public) linkini döndürür."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        raise HTTPException(status_code=500, detail="Supabase Storage ayarları (.env) eksik.")
+
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{filename}"
+    headers = {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        "Content-Type": content_type,
+        "x-upsert": "true",  # aynı isimde dosya varsa üzerine yaz
+    }
+    response = requests.post(upload_url, headers=headers, data=file_bytes)
+
+    if response.status_code not in (200, 201):
+        raise HTTPException(status_code=500, detail=f"Resim yüklenemedi: {response.text}")
+
+    return f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{filename}"
+
+
+# ---------------------------
+# GALERİ: TÜM SERTİFİKALARI LİSTELE
+# ---------------------------
+def get_all_certificates():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT code, title, dimensions, year, material, theme, doc_size,
+                   artist_name, image_url, like_count, created_at
+            FROM certificates
+            ORDER BY created_at DESC
+        """)
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# ---------------------------
+# TEK SERTİFİKA DETAYI (kod ile)
+# ---------------------------
+def get_certificate_by_code(code: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT code, title, dimensions, year, material, theme, doc_size,
+                   artist_name, image_url, like_count, created_at
+            FROM certificates
+            WHERE code=%s
+        """, (code,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# ---------------------------
+# BEĞENİ SAYISINI ARTIR
+# ---------------------------
+def increment_like(code: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE certificates
+            SET like_count = like_count + 1
+            WHERE code = %s
+            RETURNING like_count
+        """, (code,))
+        row = cursor.fetchone()
+        conn.commit()
+        return row
+    finally:
+        cursor.close()
+        conn.close()
