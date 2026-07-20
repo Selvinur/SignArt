@@ -721,7 +721,7 @@ const app = {
         }
       } else {
         // Real API integration
-        const response = await fetch(`${this.state.apiSettings.baseUrl}/api/login`, {
+        const response = await fetch(`${this.state.apiSettings.baseUrl}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
@@ -796,7 +796,7 @@ const app = {
           user: { name, email }
         };
       } else {
-        const response = await fetch(`${this.state.apiSettings.baseUrl}/api/register`, {
+        const response = await fetch(`${this.state.apiSettings.baseUrl}/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password })
