@@ -12,7 +12,7 @@ const app = {
                window.location.hostname === '' || 
                window.location.protocol === 'file:'
         ? 'http://localhost:8000/api'
-        : 'https://signart.onrender.com'
+        : 'https://signart.onrender.com/api'
     },
     generatedCertificate: null,
     certificates: [],
