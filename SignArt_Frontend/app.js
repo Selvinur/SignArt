@@ -7,7 +7,7 @@ const app = {
     user: null,
     apiSettings: {
       mockMode: false,
-      baseUrl: 'http://localhost:5000/api'
+      baseUrl: 'https://signart.onrender.com'
     },
     generatedCertificate: null,
     certificates: [],

@@ -22,6 +22,11 @@ except Exception as e:
 
 app = FastAPI(title="Signart API")
 
+origins = [
+    "http://localhost:3000",
+    "https://senin-frontendin.vercel.app", # Vercel URL'sini buraya ekle
+]
+
 # Ablanın frontend'i ile iletişime izin ver
 app.add_middleware(
     CORSMiddleware,
