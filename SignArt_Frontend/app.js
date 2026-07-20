@@ -7,7 +7,7 @@ const app = {
     user: null,
     apiSettings: {
       mockMode: false,
-      baseUrl: 'http://localhost:5000/api'
+      baseUrl: 'http://localhost:8000/api'
     },
     generatedCertificate: null,
     certificates: [],
