@@ -7,7 +7,10 @@ const app = {
     user: null,
     apiSettings: {
       mockMode: false,
-      baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      baseUrl: window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' || 
+               window.location.hostname === '' || 
+               window.location.protocol === 'file:'
         ? 'http://localhost:8000/api'
         : 'https://signart.onrender.com'
     },
